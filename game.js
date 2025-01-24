@@ -1,81 +1,88 @@
 const readlineSync = require('readline-sync');
 
+const suits = ["Hearts", "Diamonds", "Clubs", "Spades"];
+const ranks = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+const ranksPerValue =  {"A":1, "2":2, "3":3,  "4":4, "5":5, "6":6, "7":7, "8":8, "9":9, "10":0, "J":0, "Q":0, "K":0};
 
-function shuffling(decks) {
-    let currentIndex = decks.length, randomIndex;
+function createDeck(deck) {
+    deck = []
+    for (let suit of suits) {
+        for (let rank of ranks) {
+            deck.push({suit, rank});
+        }
+    }
+    return deck;
+}
+
+
+function shuffleDeck(deck) {
+    let currentIndex = deck.length, randomIndex;
     while (currentIndex != 0) {
         randomIndex = Math.floor(Math.random() * currentIndex);
         currentIndex--;
-        // console.log(decks);
-        [decks[currentIndex], decks[randomIndex]] = [decks[randomIndex], decks[currentIndex]];
-        // console.log(decks)
+        [deck[currentIndex], deck[randomIndex]] = [deck[randomIndex], deck[currentIndex]];
     }
-    return decks;
+    return deck;
 }
 
-function playingPokdeng(bettingCoin){
-    const suits = ["Hearts", "Diamonds", "Clubs", "Spades"];
-    const ranks = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
-    const decks = [];
-    const createDeck = () => {
-        for (let suit of suits) {
-            for (let rank of ranks) {
-                decks.push({suit, rank});
-            }
-        }
-        return decks;
+const calculateCardValue = (cards) => {
+    return cards.reduce((acc, card) => {
+        return acc + ranksPerValue[card['rank']];
     }
-    const shuffledDeck = shuffling(createDeck());
+    , 0)%10;
+}
+
+function playRound(bettingCoin){
+
+    const shuffledDeck = shuffleDeck(createDeck());
     const player1Cards = shuffledDeck.slice(0, 2);
     const player2Cards = shuffledDeck.slice(2, 4);
 
     console.log(`You got ${player1Cards[0]['suit']}-${player1Cards[0]['rank']}, ${player1Cards[1]['suit']}-${player1Cards[1]['rank']}`)
     console.log(`The dealer got ${player2Cards[0]['suit']}-${player2Cards[0]['rank']}, ${player2Cards[1]['suit']}-${player2Cards[1]['rank']}`)
 
-    const calculateCardValue = (cards) => {
-        let sum = 0;
-        ranksPerValue =  {"A":1, "2":2, "3":3,  "4":4, "5":5, "6":6, "7":7, "8":8, "9":9, "10":0, "J":0, "Q":0, "K":0};
-        for (let card of cards) {
-            sum += ranksPerValue[card['rank']]
-        }
-        sum %= 10 
-        return sum
-    }
     const player1CardsValue = calculateCardValue(player1Cards)
     const player2CardsValue = calculateCardValue(player2Cards) 
+    // console.log(`Your card value is ${player1CardsValue}`)
+    // console.log(`The dealer card value is ${player2CardsValue}`)
     if (player1CardsValue > player2CardsValue) {
         console.log(`You won!!!, received ${bettingCoin} chips`)
+        return bettingCoin
     }else if (player1CardsValue < player2CardsValue) {
-        bettingCoin = -bettingCoin
         console.log(`You lose!!!, losed ${bettingCoin} chips`)
+        return -bettingCoin
     }else {
-        bettingCoin = 0
         console.log(`You Tie!!!, received nothing`)
-
+        return 0
     }
-    return bettingCoin
 }
-
+//Main game loop
 function main() {
-    let net_chip = 0
+    let netChips = 0
     while (true) {
-        const bettingCoin = readlineSync.question('Please put your bet\n');
-        const money = playingPokdeng(bettingCoin);
-        net_chip += parseInt(money)
-        const playAgain = readlineSync.question('Wanna play more (Yes/No)?\n');
-        console.log()
-        if (playAgain === 'No') {
-            break
+        const bettingCoin = parseInt(readlineSync.question('Please put your bet\n'));
+        if (isNaN(bettingCoin) || bettingCoin <= 0) {
+            console.log('Please put a valid bet')
+            continue
         }
+
+        const roundResult = playRound(bettingCoin);
+        netChips += roundResult
+
+        const playAgain = readlineSync.question('Wanna play more (Yes/No)?\n');
+        if (playAgain.toLowerCase() === 'no') {
+            break;
+        }
+        console.log()
     }
-    if (net_chip > 0) {
-        console.log(`You got total ${net_chip} chips`)
-    }else if (net_chip < 0) {
-        net_chip = Math.abs(net_chip)
-        console.log(`You lose total ${net_chip} chips`)
+
+    if (netChips > 0) {
+        console.log(`You got a total of ${netChips} chips.`)
+    }else if (netChips < 0) {
+        console.log(`You lose a total of ${Math.abs(netChips)} chips.`)
     }else {
-        console.log(`You got nothing`)
+        console.log(`You ended up with no chips.`)
     }
 
 }
-main()
+main();
