@@ -4,7 +4,7 @@ const suits = ["Hearts", "Diamonds", "Clubs", "Spades"];
 const ranks = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
 const ranksPerValue =  {"A":1, "2":2, "3":3,  "4":4, "5":5, "6":6, "7":7, "8":8, "9":9, "10":0, "J":0, "Q":0, "K":0};
 
-function createDeck(deck) {
+function createDeck() {
     deck = []
     for (let suit of suits) {
         for (let rank of ranks) {
@@ -26,10 +26,7 @@ function shuffleDeck(deck) {
 }
 
 const calculateCardValue = (cards) => {
-    return cards.reduce((acc, card) => {
-        return acc + ranksPerValue[card['rank']];
-    }
-    , 0)%10;
+    return cards.reduce((acc, card) => acc + ranksPerValue[card.rank], 0) % 10;
 }
 
 function playRound(bettingCoin){
@@ -38,8 +35,8 @@ function playRound(bettingCoin){
     const player1Cards = shuffledDeck.slice(0, 2);
     const player2Cards = shuffledDeck.slice(2, 4);
 
-    console.log(`You got ${player1Cards[0]['suit']}-${player1Cards[0]['rank']}, ${player1Cards[1]['suit']}-${player1Cards[1]['rank']}`)
-    console.log(`The dealer got ${player2Cards[0]['suit']}-${player2Cards[0]['rank']}, ${player2Cards[1]['suit']}-${player2Cards[1]['rank']}`)
+    console.log(`You got ${player1Cards[0].suit}-${player1Cards[0].rank}, ${player1Cards[1].suit}-${player1Cards[1].rank}`)
+    console.log(`The dealer got ${player2Cards[0].suit}-${player2Cards[0].rank}, ${player2Cards[1].suit}-${player2Cards[1].rank}`)
 
     const player1CardsValue = calculateCardValue(player1Cards)
     const player2CardsValue = calculateCardValue(player2Cards) 
@@ -49,10 +46,10 @@ function playRound(bettingCoin){
         console.log(`You won!!!, received ${bettingCoin} chips`)
         return bettingCoin
     }else if (player1CardsValue < player2CardsValue) {
-        console.log(`You lose!!!, losed ${bettingCoin} chips`)
+        console.log(`You lose!!!, lost ${bettingCoin} chips`)
         return -bettingCoin
     }else {
-        console.log(`You Tie!!!, received nothing`)
+        console.log(`It's a tie!!!, received nothing`)
         return 0
     }
 }
@@ -69,10 +66,16 @@ function main() {
         const roundResult = playRound(bettingCoin);
         netChips += roundResult
 
-        const playAgain = readlineSync.question('Wanna play more (Yes/No)?\n');
-        if (playAgain.toLowerCase() === 'no') {
-            break;
+        let playAgain = readlineSync.question('Wanna play more (Yes/No)?\n');
+        while (playAgain.toLowerCase() !== 'yes' && playAgain.toLowerCase() !== 'no') {
+            console.log('Please enter a valid input')
+            playAgain = readlineSync.question('Wanna play more (Yes/No)?\n');
+            continue
         }
+        if (playAgain.toLowerCase() === 'no') {
+            break
+        }
+
         console.log()
     }
 
